@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from 'src/app/Service/api.service';
 import { Router } from '@angular/router';
 import { FormBuilder } from '@angular/forms';
+import { Validator } from '@angular/forms';
 
 @Component({
   selector: 'app-login',
@@ -22,8 +23,8 @@ export class LoginComponent implements OnInit {
   }
   createForm() {
     this.loginForm = this.formBuilder.group({
-      email: '',
-      password: ''
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)]]
     });
   }
   login(): void {
