@@ -23,7 +23,7 @@ export class NavigationComponent implements OnInit {
   }
 
   ngOnInit() {
-    //console.log(this.auth.getAuthType());
+    console.log(this.auth.getAuthType());
 
   }
   logout() {
