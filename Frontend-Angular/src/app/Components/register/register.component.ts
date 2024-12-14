@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./register.component.css']
 })
 export class RegisterComponent implements OnInit {
-  private registerForm: any;
+  registerForm: any;
   constructor(private apiService: ApiService,
     private router: Router,
     private formBuilder: FormBuilder) {
