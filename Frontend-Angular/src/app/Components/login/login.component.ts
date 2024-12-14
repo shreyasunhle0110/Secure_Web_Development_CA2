@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from 'src/app/Service/api.service';
 import { Router } from '@angular/router';
-import { FormBuilder } from '@angular/forms';
-import { Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { LoginAttemptService } from 'src/app/Service/login-attempt.service';
 
 @Component({
   selector: 'app-login',
@@ -10,39 +10,61 @@ import { Validators } from '@angular/forms';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-
-  loginForm: any;
+  loginForm: FormGroup;
   error = false;
-  constructor(private apiService: ApiService,
+  errorMessage = '';
+
+  constructor(
+    private apiService: ApiService,
     private router: Router,
-    private formBuilder: FormBuilder) {
+    private formBuilder: FormBuilder,
+    private loginAttemptService: LoginAttemptService
+  ) {
     this.createForm();
   }
 
-  ngOnInit() {
-    
-  }
+  ngOnInit() {}
+
   createForm() {
     this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)]]
+      email: ['', [Validators.required]],
+      password: ['', [Validators.required, Validators.minLength(8)]]
     });
   }
+
   login(): void {
-    this.apiService.login(this.loginForm.value).
-      subscribe(res => {
-        if (res.status == "200" && res.userType == "CUSTOMER") {
-          this.apiService.storeToken(res.authToken, "customer");
-          this.router.navigate(['/home']);
-          this.error = false;
-        } else if (res.status == "200" && res.userType == "ADMIN") {
-          this.apiService.storeToken(res.authToken, "admin");
-          this.router.navigate(['/admin']);
+    console.log('Login method called');
+  if (this.loginForm.invalid) {
+    console.log('Form is invalid', this.loginForm.errors);
+    return;
+  }
+
+    const email = this.loginForm.get('email')?.value;
+
+    if (this.loginAttemptService.isLocked(email)) {
+      this.error = true;
+      this.errorMessage = "Account locked. Try again later.";
+      return;
+    }
+
+    this.apiService.login(this.loginForm.value).subscribe(
+      res => {
+        if (res.status == "200") {
+          this.loginAttemptService.resetAttempts(email);
+          this.apiService.storeToken(res.authToken, res.userType.toLowerCase());
+          this.router.navigate([res.userType === "CUSTOMER" ? '/home' : '/admin']);
           this.error = false;
         }
       },
-        err => {
-          this.router.navigate(['/login']);
-      });
+      err => {
+        this.loginAttemptService.recordAttempt(email);
+        this.error = true;
+        const remainingAttempts = 5 - this.loginAttemptService.getAttempts(email);
+        this.errorMessage = `Invalid credentials. Attempts remaining: ${remainingAttempts}`;
+        if (this.loginAttemptService.isLocked(email)) {
+          this.errorMessage = "Account locked. Try again later.";
+        }
+      }
+    );
   }
 }
