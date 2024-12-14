@@ -2,7 +2,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
-import { StorageServiceModule } from 'angular-webstorage-service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NavigationComponent } from './Components/navigation/navigation.component';
@@ -40,8 +39,10 @@ import { AppRoutingModule } from './app-routing.module';
     FormsModule,
     ReactiveFormsModule,
     NgbModule,
+    NgModule,
     BrowserAnimationsModule,
-    AppRoutingModule
+    AppRoutingModule,
+    NavigationComponent
   ],
   providers: [{
     provide: HTTP_INTERCEPTORS,

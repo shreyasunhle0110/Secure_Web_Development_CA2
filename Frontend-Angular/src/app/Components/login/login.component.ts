@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { ApiService } from 'src/app/Service/api.service';
 import { Router } from '@angular/router';
-import { FormBuilder } from '@angular/forms';
-import { Validator } from '@angular/forms';
 
 @Component({
   selector: 'app-login',
@@ -16,10 +15,11 @@ export class LoginComponent implements OnInit {
   constructor(private apiService: ApiService,
     private router: Router,
     private formBuilder: FormBuilder) {
-    this.createForm();
+    
   }
 
   ngOnInit() {
+    this.createForm();
   }
   createForm() {
     this.loginForm = this.formBuilder.group({
