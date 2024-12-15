@@ -94,10 +94,3 @@ This project demonstrates the modernization and security enhancement of a legacy
 ## Contributing
 
 Contributions to enhance the security features or improve the codebase are welcome. Please follow the standard pull request process.
-
-## License
-
-This project is licensed under the MIT License.
-
-Citations:
-[1] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/28611857/3c8323b7-149d-4ac3-8d1d-7185a3c80f78/Shreyas_Unhale_E-Commerce.pdf
