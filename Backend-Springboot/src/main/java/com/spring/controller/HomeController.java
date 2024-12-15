@@ -2,9 +2,6 @@ package com.spring.controller;
 
 import java.util.HashMap;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,14 +22,20 @@ import org.springframework.web.bind.annotation.RestController;
 import com.spring.constants.ResponseCode;
 import com.spring.constants.WebConstants;
 import com.spring.exception.UserCustomException;
+import com.spring.model.AuthenticationRequest;
+import com.spring.model.AuthenticationResponse;
 import com.spring.model.User;
 import com.spring.repository.UserRepository;
 import com.spring.response.ServerResponse;
+import com.spring.service.DecryptionService;
 import com.spring.service.MyUserDetailService;
 import com.spring.util.JwtUtil;
 import com.spring.util.Validator;
 
-@CrossOrigin(origins = WebConstants.ALLOWED_URL)
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/home")
 public class HomeController {
@@ -47,40 +50,47 @@ public class HomeController {
 	private UserRepository userRepo;
 
 	@Autowired
-	private JwtUtil jwtutil;
+	private JwtUtil jwtUtil;
 
-	@PostMapping("/auth")
-	public ResponseEntity<ServerResponse> createAuthToken(@RequestBody HashMap<String, String> credential) {
+	@Autowired
+	private DecryptionService decryptionService;
 
-		final String email = credential.get(WebConstants.USER_EMAIL);
-		final String password = credential.get(WebConstants.USER_PASSWORD);
+	// @PostMapping("/auth")
+	// public ResponseEntity<ServerResponse> createAuthToken(@RequestBody
+	// HashMap<String, String> credential) {
+	// final String email = credential.get(WebConstants.USER_EMAIL);
+	// final String password = credential.get(WebConstants.USER_PASSWORD);
+	// //String decryptedPassword = decryptionService.decrypt(password);
+	// try {
+	// authenticationManager.authenticate(new
+	// UsernamePasswordAuthenticationToken(email, decryptedPassword));
 
-		try {
-			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-		} catch (BadCredentialsException e) {
-			throw new UserCustomException("Invalid User Credentials");
-		}
-		final UserDetails userDetails = userDetailService.loadUserByUsername(email);
-		final String jwt = jwtutil.generateToken(userDetails);
+	// // If authentication is successful, generate JWT token
+	// final UserDetails userDetails = userDetailService.loadUserByUsername(email);
+	// final String jwt = jwtUtil.generateToken(userDetails);
 
-		ServerResponse resp = new ServerResponse();
-		resp.setStatus(ResponseCode.SUCCESS_CODE);
-		resp.setMessage(ResponseCode.SUCCESS_MESSAGE);
-		resp.setAuthToken(jwt);
+	// ServerResponse resp = new ServerResponse();
+	// resp.setStatus(ResponseCode.SUCCESS_CODE);
+	// resp.setMessage(ResponseCode.SUCCESS_MESSAGE);
+	// resp.setAuthToken(jwt);
 
-		if (userDetails != null
-				&& userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-			resp.setUserType("ADMIN");
-		} else {
-			resp.setUserType("CUSTOMER");
-		}
+	// if (userDetails != null
+	// && userDetails.getAuthorities().stream().anyMatch(a ->
+	// a.getAuthority().equals("ROLE_ADMIN"))) {
+	// resp.setUserType("ADMIN");
+	// } else {
+	// resp.setUserType("CUSTOMER");
+	// }
 
-		return new ResponseEntity<ServerResponse>(resp, HttpStatus.OK);
-	}
+	// return new ResponseEntity<>(resp, HttpStatus.OK);
+
+	// } catch (BadCredentialsException e) {
+	// throw new UserCustomException("Invalid User Credentials");
+	// }
+	// }
 
 	@PostMapping("/signup")
 	public ResponseEntity<ServerResponse> addUser(@RequestBody User user) {
-
 		ServerResponse resp = new ServerResponse();
 		try {
 			if (Validator.isUserEmpty(user)) {
@@ -90,14 +100,35 @@ public class HomeController {
 				resp.setStatus(ResponseCode.BAD_REQUEST_CODE);
 				resp.setMessage(ResponseCode.INVALID_EMAIL_FAIL_MSG);
 			} else {
+				//user.setPassword(passwordEncoder.encode(user.getPassword()));
 				resp.setStatus(ResponseCode.SUCCESS_CODE);
 				resp.setMessage(ResponseCode.CUST_REG);
 				userRepo.save(user);
 			}
 		} catch (Exception e) {
-			throw new UserCustomException("An error occured while saving user, please check details or try again");
+			throw new UserCustomException("An error occurred while saving user, please check details or try again");
 		}
 		return new ResponseEntity<ServerResponse>(resp, HttpStatus.ACCEPTED);
+	}
+
+	@PostMapping("/authenticate")
+	public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest)
+			throws Exception {
+		try {
+			// Use the password directly without decryption
+			authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(),
+							authenticationRequest.getPassword()));
+		} catch (BadCredentialsException e) {
+			throw new Exception("Incorrect username or password", e);
+		}
+
+		final UserDetails userDetails = userDetailService
+				.loadUserByUsername(authenticationRequest.getUsername());
+
+		final String jwt = jwtUtil.generateToken(userDetails);
+
+		return ResponseEntity.ok(new AuthenticationResponse(jwt));
 	}
 
 	@GetMapping(value = "/logout")

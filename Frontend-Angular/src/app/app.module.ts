@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
 import { NavigationComponent } from './Components/navigation/navigation.component';
 import { LoginComponent } from './Components/login/login.component';
 import { RegisterComponent } from './Components/register/register.component';
@@ -18,6 +18,7 @@ import { EditItemComponent } from './Components/admin/edit-item/edit-item.compon
 import { OrderItemComponent } from './Components/admin/order-item/order-item.component';
 import { AuthInterceptor } from './Service/AuthInterceptor';
 import { AppRoutingModule } from './app-routing.module';
+import { CsrfInterceptor } from './Service/csrf.interceptor';
 
 @NgModule({
   declarations: [
@@ -40,12 +41,16 @@ import { AppRoutingModule } from './app-routing.module';
     NgbModule,
     BrowserAnimationsModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    HttpClientXsrfModule.withOptions({
+      cookieName: 'XSRF-TOKEN',
+      headerName: 'X-XSRF-TOKEN',
+    }),
   ],
   providers: [
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptor,
+      useClass: CsrfInterceptor,
       multi: true,
     },
     AuthguardGuard

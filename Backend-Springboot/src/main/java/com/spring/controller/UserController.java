@@ -127,21 +127,23 @@ public class UserController {
 	}
 
 	@GetMapping("/getProducts")
-public ResponseEntity<ProductResponse> getProducts(Authentication auth) throws IOException {
-    logger.info("Fetching products for user: " + auth.getName());
-    ProductResponse resp = new ProductResponse();
-    try {
-        List<Product> products = prodRepo.findAll();
-        logger.info("Found " + products.size() + " products");
-        resp.setStatus(ResponseCode.SUCCESS_CODE);
-        resp.setMessage(ResponseCode.LIST_SUCCESS_MESSAGE);
-        resp.setOblist(products);
-    } catch (Exception e) {
-        logger.severe("Error fetching products: " + e.getMessage());
-        throw new ProductCustomException("Unable to retrieve products, please try again");
+    public ResponseEntity<ProductResponse> getProducts(Authentication auth) throws IOException {
+        logger.info("Fetching products for user: " + auth.getName());
+        logger.info("User roles: " + auth.getAuthorities());
+
+        ProductResponse resp = new ProductResponse();
+        try {
+            List<Product> products = prodRepo.findAll();
+            logger.info("Found " + products.size() + " products");
+            resp.setStatus(ResponseCode.SUCCESS_CODE);
+            resp.setMessage(ResponseCode.LIST_SUCCESS_MESSAGE);
+            resp.setOblist(products);
+        } catch (Exception e) {
+            logger.severe("Error fetching products: " + e.getMessage());
+            throw new ProductCustomException("Unable to retrieve products, please try again");
+        }
+        return new ResponseEntity<ProductResponse>(resp, HttpStatus.OK);
     }
-    return new ResponseEntity<ProductResponse>(resp, HttpStatus.OK);
-}
 
 	@GetMapping("/addToCart")
 	public ResponseEntity<ServerResponse> addToCart(@RequestParam(WebConstants.PROD_ID) String productId,

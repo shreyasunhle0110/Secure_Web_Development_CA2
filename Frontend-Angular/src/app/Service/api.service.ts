@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Product } from '../Model/product';
 import { User } from '../Model/user';
 import { Address } from '../Model/address';
 import { environment } from 'src/environments/environment';
+import * as CryptoJS from 'crypto-js';
 
 @Injectable({
   providedIn: 'root'
@@ -14,62 +15,87 @@ export class ApiService {
   
   constructor(private http: HttpClient) {}
 
-  private handleError(error: any) {
+  private handleError(error: HttpErrorResponse) {
     console.error('An error occurred:', error);
     return throwError(() => new Error('Something bad happened; please try again later.'));
   }
 
-  register(user: User): Observable<any> {
-    return this.http.post(`${environment.baseUrl}${environment.signupUrl}`, user, {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    }).pipe(catchError(this.handleError));
+  private getCsrfToken(): string | null {
+    return this.getCookie('XSRF-TOKEN');
   }
 
-  login(user: User): Observable<any> {
-    return this.http.post(`${environment.baseUrl}${environment.loginUrl}`, user, {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    }).pipe(catchError(this.handleError));
+  private getCookie(name: string): string | null {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
+  private getHeaders(isFormData: boolean = false): HttpHeaders {
+    let headers = new HttpHeaders();
+    if (!isFormData) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+    headers = headers.set('Authorization', `Bearer ${this.getToken()}`);
+    const csrfToken = this.getCsrfToken();
+    if (csrfToken) {
+      headers = headers.set('X-XSRF-TOKEN', csrfToken);
+    }
+    return headers;
+  }
+
+  refreshCsrfToken(): Observable<any> {
+    return this.http.get(`${environment.baseUrl}/api/csrf-token`)
+      .pipe(catchError(this.handleError));
+  }
+
+  register(user: User): Observable<any> {
+    return this.http.post(`${environment.baseUrl}${environment.signupUrl}`, user, { headers: this.getHeaders() })
+      .pipe(catchError(this.handleError));
+  }
+
+  login(loginData: any): Observable<any> {
+    return this.http.post(`${environment.baseUrl}${environment.loginUrl}`, loginData)
+      .pipe(catchError(this.handleError));
   }
 
   logout(): Observable<any> {
-    return this.http.get<any>(`${environment.baseUrl}${environment.logoutUrl}`)
+    return this.http.post<any>(`${environment.baseUrl}${environment.logoutUrl}`, {}, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   addToCart(product: Product): Observable<any> {
     const params = new HttpParams().set('productId', product.productid.toString());
-    return this.http.get<any>(`${environment.baseUrl}${environment.addToCartUrl}`, { params })
+    return this.http.post<any>(`${environment.baseUrl}${environment.addToCartUrl}`, {}, { params, headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   getCartItems(): Observable<any> {
-    return this.http.get<any>(`${environment.baseUrl}${environment.viewCartUrl}`)
+    return this.http.get<any>(`${environment.baseUrl}${environment.viewCartUrl}`, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   updateCartItem(prodid: number, quant: number): Observable<any> {
-    return this.http.put<any>(`${environment.baseUrl}${environment.updateCartUrl}`, { id: prodid, quantity: quant })
+    return this.http.put<any>(`${environment.baseUrl}${environment.updateCartUrl}`, { id: prodid, quantity: quant }, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   deleteCartItem(bufdid: number): Observable<any> {
     const params = new HttpParams().set('bufcartid', bufdid.toString());
-    return this.http.delete<any>(`${environment.baseUrl}${environment.deleteCartUrl}`, { params })
+    return this.http.delete<any>(`${environment.baseUrl}${environment.deleteCartUrl}`, { params, headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   addOrUpdateAddress(adr: Address): Observable<any> {
-    return this.http.post<any>(`${environment.baseUrl}${environment.addAddressUrl}`, adr)
+    return this.http.post<any>(`${environment.baseUrl}${environment.addAddressUrl}`, adr, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   getAddress(): Observable<any> {
-    return this.http.get<any>(`${environment.baseUrl}${environment.viewAddressUrl}`)
+    return this.http.get<any>(`${environment.baseUrl}${environment.viewAddressUrl}`, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   getProducts(): Observable<any> {
-    return this.http.get<any>(`${environment.baseUrl}${environment.productsUrl}`)
+    return this.http.get<any>(`${environment.baseUrl}${environment.productsUrl}`, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
@@ -80,7 +106,7 @@ export class ApiService {
     formData.append("productname", prodname);
     formData.append("quantity", quan);
     formData.append("file", image);
-    return this.http.post<any>(`${environment.baseUrl}${environment.addProductUrl}`, formData)
+    return this.http.post<any>(`${environment.baseUrl}${environment.addProductUrl}`, formData, { headers: this.getHeaders(true) })
       .pipe(catchError(this.handleError));
   }
 
@@ -92,31 +118,28 @@ export class ApiService {
     formData.append("quantity", quan);
     formData.append("file", image);
     formData.append("productId", productid);
-    return this.http.put<any>(`${environment.baseUrl}${environment.updateProductUrl}`, formData)
+    return this.http.put<any>(`${environment.baseUrl}${environment.updateProductUrl}`, formData, { headers: this.getHeaders(true) })
       .pipe(catchError(this.handleError));
   }
 
   deleteProduct(prodid: number): Observable<any> {
     const params = new HttpParams().set('productId', prodid.toString());
-    return this.http.delete<any>(`${environment.baseUrl}${environment.deleteProductUrl}`, { params })
+    return this.http.delete<any>(`${environment.baseUrl}${environment.deleteProductUrl}`, { params, headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   getOrders(): Observable<any> {
-    return this.http.get<any>(`${environment.baseUrl}${environment.viewOrderUrl}`)
+    return this.http.get<any>(`${environment.baseUrl}${environment.viewOrderUrl}`, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   placeOrder(): Observable<any> {
-    return this.http.get<any>(`${environment.baseUrl}${environment.placeOrderUrl}`)
+    return this.http.post<any>(`${environment.baseUrl}${environment.placeOrderUrl}`, {}, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
   updateStatusForOrder(order: any): Observable<any> {
-    const formData: FormData = new FormData();
-    formData.append("orderId", order.orderId);
-    formData.append("orderStatus", order.orderStatus);
-    return this.http.post<any>(`${environment.baseUrl}${environment.updateOrderUrl}`, formData)
+    return this.http.post<any>(`${environment.baseUrl}${environment.updateOrderUrl}`, order, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
 
@@ -141,5 +164,10 @@ export class ApiService {
   removeToken(): void {
     localStorage.removeItem('auth_type');
     localStorage.removeItem('auth_token');
+  }
+
+  encryptData(data: string): string {
+    const secretKey = 'rX9Ky7m2Pn4Vt3Lq1Zs8Fb6Hj0Cw5Dg9';
+    return CryptoJS.AES.encrypt(data, secretKey).toString();
   }
 }

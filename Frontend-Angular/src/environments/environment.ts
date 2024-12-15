@@ -6,7 +6,7 @@ export const environment = {
   production: false,
   baseUrl:"http://localhost:8087",
   signupUrl : "/home/signup",
-  loginUrl : "/home/auth",
+  loginUrl : "/home/authenticate",
   addToCartUrl : "/user/addToCart",
   viewCartUrl : "/user/viewCart",
   updateCartUrl : "/user/updateCart",
