@@ -90,7 +90,8 @@ This project demonstrates the modernization and security enhancement of a legacy
 
 - Functional testing for login attempt limiter, JWT authentication, and CSRF protection
 - Static Application Security Testing (SAST) using SonarQube
-
+![image](https://github.com/user-attachments/assets/d0b6de0a-c38e-45cc-b439-97a3904d3540)
+SonarQube Scan result
 ## Contributing
 
 Contributions to enhance the security features or improve the codebase are welcome. Please follow the standard pull request process.
