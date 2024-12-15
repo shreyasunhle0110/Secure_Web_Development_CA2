@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
 import { NavigationComponent } from './Components/navigation/navigation.component';
 import { LoginComponent } from './Components/login/login.component';
 import { RegisterComponent } from './Components/register/register.component';
@@ -31,7 +31,7 @@ import { AppRoutingModule } from './app-routing.module';
     AddressComponent,
     AdminComponent,
     EditItemComponent,
-    OrderItemComponent
+    OrderItemComponent,
   ],
   imports: [
     BrowserModule,
@@ -40,7 +40,11 @@ import { AppRoutingModule } from './app-routing.module';
     NgbModule,
     BrowserAnimationsModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    HttpClientXsrfModule.withOptions({
+      cookieName: 'XSRF-TOKEN',
+      headerName: 'X-XSRF-TOKEN',
+    }),
   ],
   providers: [
     {
@@ -48,6 +52,7 @@ import { AppRoutingModule } from './app-routing.module';
       useClass: AuthInterceptor,
       multi: true,
     },
+    
     AuthguardGuard
   ],
   bootstrap: [AppComponent]

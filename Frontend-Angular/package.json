@@ -7,7 +7,8 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "sonar": "sonar-scanner"
   },
   "private": true,
   "dependencies": {
@@ -38,11 +39,12 @@
     "@types/node": "^20.10.4",
     "jasmine-core": "^5.1.1",
     "jasmine-spec-reporter": "^7.0.0",
-    "karma": "^6.4.2",
+    "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.1.0",
+    "sonar-scanner": "^3.1.0",
     "typescript": "~5.4.5"
   }
 }

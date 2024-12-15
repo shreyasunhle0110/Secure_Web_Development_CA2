@@ -1,6 +1,7 @@
 package com.spring.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -82,7 +83,11 @@ public class User implements Serializable {
 		this.address = address;
 	}
 
-	private int age;
+	public User(String string, String string2, ArrayList arrayList) {
+        //TODO Auto-generated constructor stub
+    }
+
+    private int age;
 
 	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "user")
 	private Address address;

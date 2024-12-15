@@ -9,18 +9,17 @@ import { Router } from '@angular/router';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-
+  title = 'app';
   constructor(private auth: ApiService, private router: Router) {
 
   }
   ngOnInit() {
-      if (this.auth.isAuthenticated()!=null && this.auth.getAuthType() == "customer") {
-        this.router.navigate(["/home"]);
-      } else if (this.auth.isAuthenticated()!=null && this.auth.getAuthType() == "admin") {
-        this.router.navigate(["/admin"]);
-      } else {
-        this.router.navigate(["/login"]);
-      }
-   
+    if (this.auth.isAuthenticated() != null && this.auth.getAuthType() == "customer") {
+      this.router.navigate(["/home"]);
+    } else if (this.auth.isAuthenticated() != null && this.auth.getAuthType() == "admin") {
+      this.router.navigate(["/admin"]);
+    } else {
+      this.router.navigate(["/login"]);
+    }
   }
 }

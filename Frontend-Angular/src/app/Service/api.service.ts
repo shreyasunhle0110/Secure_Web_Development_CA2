@@ -11,12 +11,34 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class ApiService {
-  
-  constructor(private http: HttpClient) {}
+
+  constructor(private http: HttpClient) { }
 
   private handleError(error: any) {
     console.error('An error occurred:', error);
     return throwError(() => new Error('Something bad happened; please try again later.'));
+  }
+
+  private getCsrfToken(): string | null {
+    return this.getCookie('XSRF-TOKEN');
+  }
+
+  private getCookie(name: string): string | null {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
+  private getHeaders(isFormData: boolean = false): HttpHeaders {
+    let headers = new HttpHeaders();
+    if (!isFormData) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+    headers = headers.set('Authorization', `Bearer ${this.getToken()}`);
+    const csrfToken = this.getCsrfToken();
+    if (csrfToken) {
+      headers = headers.set('X-XSRF-TOKEN', csrfToken);
+    }
+    return headers;
   }
 
   register(user: User): Observable<any> {
@@ -69,9 +91,10 @@ export class ApiService {
   }
 
   getProducts(): Observable<any> {
-    return this.http.get<any>(`${environment.baseUrl}${environment.productsUrl}`)
+    return this.http.get<any>(`${environment.baseUrl}${environment.productsUrl}`, { headers: this.getHeaders() })
       .pipe(catchError(this.handleError));
   }
+
 
   addProduct(desc: string, quan: string, price: string, prodname: string, image: File): Observable<any> {
     const formData: FormData = new FormData();
