@@ -5,14 +5,14 @@
             <div class="card login shadow p-3 mb-5 bg-white rounded ">
                     <div class="card-body">
                             <form [formGroup]="loginForm" (ngSubmit)="login()">
-                                <div *ngIf="error">Content to render when condition is true.</div>
+                                <div *ngIf="error" class="alert alert-danger">{{ errorMessage }}</div>
                                 <div class="form-group">
                                     <input class="form-control" formControlName="email" placeholder="xyz@gmail.com" style="width:50%">
                                 </div>
                                 <div class="form-group">
                                     <input type="password" class="form-control" formControlName="password" placeholder="Password" style="width:50%">
                                 </div>
-                                <input type="submit" class="btn btn-secondary align-right" value="Login">
+                                <input type="submit" [disabled]="loginForm.invalid" class="btn btn-secondary align-right" value="Login">
                             </form>
                     </div>
             </div>

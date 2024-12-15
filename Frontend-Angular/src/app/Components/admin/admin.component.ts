@@ -3,7 +3,6 @@ import { ApiService } from 'src/app/Service/api.service';
 import { Product } from 'src/app/Model/product';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { NavigationExtras, Router } from '@angular/router';
-import { Route } from '@angular/compiler/src/core';
 
 @Component({
   selector: 'app-admin',
